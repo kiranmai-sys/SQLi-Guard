@@ -232,6 +232,7 @@ cp .env.example .env
 
 # 🛡️ Deploy the defenses
 python setup_supabase.py
+python seed_supabase.py   # Seed demo data (optional)
 
 # 🚀 Launch the guardian
 python app.py
