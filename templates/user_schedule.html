@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule - SQLi Guard{% endblock %}
+
+{% block content %}
+<div class="schedule-container">
+    <div class="schedule-header">
+        <h2>📅 Schedule View</h2>
+        <p>Welcome, {{ session.username }}! Here's your schedule overview.</p>
+    </div>
+    
+    <div class="schedule-grid">
+        {% if schedules %}
+            {% for schedule in schedules %}
+            <div class="schedule-card">
+                <div class="schedule-date">{{ schedule.date }}</div>
+                <div class="schedule-time">{{ schedule.start_time }} - {{ schedule.end_time }}</div>
+                <h3 class="schedule-title">{{ schedule.title }}</h3>
+                {% if schedule.description %}
+                <p class="schedule-description">{{ schedule.description }}</p>
+                {% endif %}
+                <div class="schedule-meta">
+                    <span class="schedule-creator">Created by: {{ schedule.created_by_name }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-schedule">
+                <div class="no-schedule-icon">📋</div>
+                <h3>No Schedules Available</h3>
+                <p>There are currently no scheduled events.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

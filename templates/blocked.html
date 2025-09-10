@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Access Blocked - SQLi Guard{% endblock %}
+
+{% block content %}
+<div class="blocked-container">
+    <div class="blocked-card">
+        <div class="blocked-icon">🚫</div>
+        <h2>Access Blocked</h2>
+        <p class="blocked-reason">{{ reason }}</p>
+        <div class="blocked-info">
+            <p>Your request has been blocked by our security system.</p>
+            <p>If you believe this is an error, please contact the administrator.</p>
+        </div>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Return to Login</a>
+    </div>
+</div>
+{% endblock %}

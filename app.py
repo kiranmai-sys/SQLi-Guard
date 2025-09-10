@@ -1,0 +1,170 @@
+from flask import Flask, request, render_template, redirect, url_for, make_response, jsonify, session, flash
+from detectors.sqli import is_malicious
+from models.supabase_db import get_supabase_db
+from utils.rate_limiter import SimpleRateLimiter
+from config import Config
+import os
+from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+# Initialize Supabase connection
+try:
+    db = get_supabase_db()
+    print("✅ Successfully connected to Supabase!")
+except Exception as e:
+    print(f"❌ Failed to connect to Supabase: {e}")
+    print("Please check your environment variables in .env file")
+    exit(1)
+
+rate_limiter = SimpleRateLimiter(limit=app.config['RATE_LIMIT_REQUESTS'], window=app.config['RATE_LIMIT_WINDOW'])
+
+@app.after_request
+def set_security_headers(resp):
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    resp.headers['X-Frame-Options'] = 'DENY'
+    resp.headers['Referrer-Policy'] = 'no-referrer'
+    resp.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline'"
+    return resp
+
+@app.before_request
+def check_ip_blocklist_and_rate():
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if ip in app.config['IP_BLOCKLIST']:
+        return render_template('blocked.html', reason="IP blocklist"), 403
+    key = f"{ip}:{request.path}"
+    if not rate_limiter.allow(key):
+        return render_template('blocked.html', reason="Rate limit exceeded"), 429
+
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form.get('username', '')
+    password = request.form.get('password', '')
+
+    # SQLi detection on raw inputs
+    hit = is_malicious(username, password)
+    if hit:
+        db.log_security_event(
+            request.headers.get('X-Forwarded-For', request.remote_addr),
+            username,
+            hit['description'],
+            hit['pattern'],
+            hit['snippet'],
+            request.headers.get('User-Agent', '')
+        )
+        resp = make_response(render_template('blocked.html', reason="SQL Injection detected"))
+        resp.status_code = 403
+        return resp
+
+    # Authenticate user with Supabase
+    user = db.authenticate_user(username, password)
+
+    if user:
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['role'] = user['role']
+        
+        if user['role'] == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        else:
+            return redirect(url_for('user_schedule'))
+    else:
+        flash("Invalid credentials.", "error")
+        return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+@app.route('/user/schedule')
+def user_schedule():
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+    
+    schedules = db.get_all_schedules()
+    
+    return render_template('user_schedule.html', schedules=schedules)
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return redirect(url_for('index'))
+    
+    # Get security events and schedules from Supabase
+    security_events = db.get_security_events()
+    schedules = db.get_all_schedules()
+    
+    return render_template('admin_dashboard.html', security_events=security_events, schedules=schedules)
+
+@app.route('/admin/schedule/add', methods=['GET', 'POST'])
+def add_schedule():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title', '')
+        description = request.form.get('description', '')
+        date = request.form.get('date', '')
+        start_time = request.form.get('start_time', '')
+        end_time = request.form.get('end_time', '')
+        
+        # SQLi detection on inputs
+        hit = is_malicious(title, description)
+        if hit:
+            db.log_security_event(
+                request.headers.get('X-Forwarded-For', request.remote_addr),
+                session.get('username', ''),
+                hit['description'],
+                hit['pattern'],
+                hit['snippet'],
+                request.headers.get('User-Agent', '')
+            )
+            flash("Invalid input detected.", "error")
+            return render_template('add_schedule.html')
+        
+        # Create schedule in Supabase
+        success = db.create_schedule(title, description, date, start_time, end_time, session['user_id'])
+        
+        if success:
+            flash("Schedule added successfully!", "success")
+        else:
+            flash("Error adding schedule. Please try again.", "error")
+        
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('add_schedule.html')
+
+@app.route('/admin/schedule/delete/<int:schedule_id>')
+def delete_schedule(schedule_id):
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return redirect(url_for('index'))
+    
+    success = db.delete_schedule(schedule_id)
+    
+    if success:
+        flash("Schedule deleted successfully!", "success")
+    else:
+        flash("Error deleting schedule. Please try again.", "error")
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/api/metrics', methods=['GET'])
+def api_metrics():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    metrics = db.get_security_metrics()
+    return jsonify(metrics)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

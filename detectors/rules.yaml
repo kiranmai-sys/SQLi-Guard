@@ -1,0 +1,32 @@
+rules:
+  - name: union_select
+    pattern: '\bunion\b\s+\bselect\b'
+    description: 'UNION SELECT injection attempt'
+  
+  - name: or_condition
+    pattern: "'\s*or\s+\d+\s*=\s*\d+"
+    description: 'OR condition injection attempt'
+  
+  - name: comment_injection
+    pattern: '--|\#|/\*'
+    description: 'SQL comment injection attempt'
+  
+  - name: drop_table
+    pattern: '\bdrop\b\s+\btable\b'
+    description: 'DROP TABLE injection attempt'
+  
+  - name: insert_injection
+    pattern: '\binsert\b\s+\binto\b'
+    description: 'INSERT injection attempt'
+  
+  - name: delete_injection
+    pattern: '\bdelete\b\s+\bfrom\b'
+    description: 'DELETE injection attempt'
+  
+  - name: update_injection
+    pattern: '\bupdate\b\s+\w+\s+\bset\b'
+    description: 'UPDATE injection attempt'
+  
+  - name: script_tag
+    pattern: '<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>'
+    description: 'Script tag injection attempt'

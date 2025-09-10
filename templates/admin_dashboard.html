@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SQLi Guard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h2>🛡️ Admin Dashboard</h2>
+        <p>Security monitoring and schedule management</p>
+    </div>
+    
+    <div class="dashboard-tabs">
+        <button class="tab-button active" onclick="showTab('security')">Security Events</button>
+        <button class="tab-button" onclick="showTab('schedules')">Schedules</button>
+    </div>
+    
+    <!-- Security Events Tab -->
+    <div id="security-tab" class="tab-content active">
+        <div class="section-header">
+            <h3>🚨 Recent Security Events</h3>
+            <span class="event-count">{{ security_events|length }} events</span>
+        </div>
+        
+        <div class="events-table-container">
+            {% if security_events %}
+            <table class="events-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>IP Address</th>
+                        <th>Username</th>
+                        <th>Threat Type</th>
+                        <th>Snippet</th>
+                        <th>User Agent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in security_events %}
+                    <tr>
+                        <td class="timestamp">{{ event.ts }}</td>
+                        <td class="ip-address">{{ event.ip }}</td>
+                        <td class="username">{{ event.username or 'N/A' }}</td>
+                        <td class="threat-type">{{ event.reason }}</td>
+                        <td class="snippet">{{ event.snippet[:50] }}{% if event.snippet|length > 50 %}...{% endif %}</td>
+                        <td class="user-agent">{{ event.user_agent[:30] }}{% if event.user_agent|length > 30 %}...{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-events">
+                <div class="no-events-icon">✅</div>
+                <h4>No Security Events</h4>
+                <p>All systems secure - no threats detected recently.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Schedules Tab -->
+    <div id="schedules-tab" class="tab-content">
+        <div class="section-header">
+            <h3>📅 Schedule Management</h3>
+            <a href="{{ url_for('add_schedule') }}" class="btn btn-primary">Add New Schedule</a>
+        </div>
+        
+        <div class="schedules-grid">
+            {% if schedules %}
+                {% for schedule in schedules %}
+                <div class="admin-schedule-card">
+                    <div class="schedule-header">
+                        <div class="schedule-date">{{ schedule.date }}</div>
+                        <div class="schedule-actions">
+                            <a href="{{ url_for('delete_schedule', schedule_id=schedule.id) }}" 
+                               class="btn btn-danger btn-small"
+                               onclick="return confirm('Are you sure you want to delete this schedule?')">Delete</a>
+                        </div>
+                    </div>
+                    <div class="schedule-time">{{ schedule.start_time }} - {{ schedule.end_time }}</div>
+                    <h4 class="schedule-title">{{ schedule.title }}</h4>
+                    {% if schedule.description %}
+                    <p class="schedule-description">{{ schedule.description }}</p>
+                    {% endif %}
+                    <div class="schedule-meta">
+                        <span>Created by: {{ schedule.created_by_name }}</span>
+                        <span>{{ schedule.created_at }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-schedule">
+                    <div class="no-schedule-icon">📋</div>
+                    <h4>No Schedules</h4>
+                    <p>No schedules have been created yet.</p>
+                    <a href="{{ url_for('add_schedule') }}" class="btn btn-primary">Create First Schedule</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}
