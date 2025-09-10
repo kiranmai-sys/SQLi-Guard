@@ -30,3 +30,47 @@ rules:
   - name: script_tag
     pattern: '<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>'
     description: 'Script tag injection attempt'
+  
+  - name: always_true
+    pattern: "'\s*or\s+'1'\s*=\s*'1"
+    description: 'Always true condition injection'
+  
+  - name: null_byte
+    pattern: '\x00'
+    description: 'Null byte injection attempt'
+  
+  - name: hex_encoding
+    pattern: '0x[0-9a-fA-F]+'
+    description: 'Hexadecimal encoding injection'
+  
+  - name: concat_function
+    pattern: '\bconcat\s*\('
+    description: 'CONCAT function injection attempt'
+  
+  - name: substring_function
+    pattern: '\bsubstring\s*\('
+    description: 'SUBSTRING function injection attempt'
+  
+  - name: sleep_function
+    pattern: '\bsleep\s*\('
+    description: 'SLEEP function time-based injection'
+  
+  - name: waitfor_delay
+    pattern: '\bwaitfor\s+delay\b'
+    description: 'WAITFOR DELAY time-based injection'
+  
+  - name: information_schema
+    pattern: '\binformation_schema\b'
+    description: 'Information schema access attempt'
+  
+  - name: sys_tables
+    pattern: '\bsys\.\w+'
+    description: 'System table access attempt'
+  
+  - name: version_function
+    pattern: '@@version|\bversion\s*\('
+    description: 'Database version disclosure attempt'
+  
+  - name: user_function
+    pattern: '@@user|\buser\s*\('
+    description: 'Database user disclosure attempt'

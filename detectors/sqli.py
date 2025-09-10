@@ -14,22 +14,22 @@ def load_rules():
             'rules': [
                 {
                     'name': 'union_select',
-                    'pattern': r'\bunion\b\s+\bselect\b',
+                    'pattern': r'\\bunion\\b\\s+\\bselect\\b',
                     'description': 'UNION SELECT injection attempt'
                 },
                 {
                     'name': 'or_condition',
-                    'pattern': r"'\s*or\s+\d+\s*=\s*\d+",
+                    'pattern': r"'\\s*or\\s+\\d+\\s*=\\s*\\d+",
                     'description': 'OR condition injection attempt'
                 },
                 {
                     'name': 'comment_injection',
-                    'pattern': r"--|\#|/\*",
+                    'pattern': r"--|\\#|/\\*",
                     'description': 'SQL comment injection attempt'
                 },
                 {
                     'name': 'drop_table',
-                    'pattern': r'\bdrop\b\s+\btable\b',
+                    'pattern': r'\\bdrop\\b\\s+\\btable\\b',
                     'description': 'DROP TABLE injection attempt'
                 }
             ]
