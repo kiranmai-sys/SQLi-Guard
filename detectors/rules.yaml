@@ -1,38 +1,38 @@
 rules:
   - name: union_select
-    pattern: '\bunion\b\s+\bselect\b'
+    pattern: '(?i)\bunion\b\s+\bselect\b'
     description: 'UNION SELECT injection attempt'
   
   - name: or_condition
-    pattern: "'\s*or\s+\d+\s*=\s*\d+"
+    pattern: "(?i)'\\s*or\\s+\\d+\\s*=\\s*\\d+"
     description: 'OR condition injection attempt'
   
   - name: comment_injection
-    pattern: '--|\#|/\*'
+    pattern: '(?i)--|#|/\*'
     description: 'SQL comment injection attempt'
   
   - name: drop_table
-    pattern: '\bdrop\b\s+\btable\b'
+    pattern: '(?i)\bdrop\b\s+\btable\b'
     description: 'DROP TABLE injection attempt'
   
   - name: insert_injection
-    pattern: '\binsert\b\s+\binto\b'
+    pattern: '(?i)\binsert\b\s+\binto\b'
     description: 'INSERT injection attempt'
   
   - name: delete_injection
-    pattern: '\bdelete\b\s+\bfrom\b'
+    pattern: '(?i)\bdelete\b\s+\bfrom\b'
     description: 'DELETE injection attempt'
   
   - name: update_injection
-    pattern: '\bupdate\b\s+\w+\s+\bset\b'
+    pattern: '(?i)\bupdate\b\s+\w+\s+\bset\b'
     description: 'UPDATE injection attempt'
   
   - name: script_tag
-    pattern: '<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>'
+    pattern: '(?i)<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>'
     description: 'Script tag injection attempt'
   
   - name: always_true
-    pattern: "'\s*or\s+'1'\s*=\s*'1"
+    pattern: "(?i)'\\s*or\\s+'1'\\s*=\\s*'1"
     description: 'Always true condition injection'
   
   - name: null_byte
@@ -40,37 +40,57 @@ rules:
     description: 'Null byte injection attempt'
   
   - name: hex_encoding
-    pattern: '0x[0-9a-fA-F]+'
+    pattern: '(?i)0x[0-9a-fA-F]+'
     description: 'Hexadecimal encoding injection'
   
   - name: concat_function
-    pattern: '\bconcat\s*\('
+    pattern: '(?i)\bconcat\s*\('
     description: 'CONCAT function injection attempt'
   
   - name: substring_function
-    pattern: '\bsubstring\s*\('
+    pattern: '(?i)\bsubstring\s*\('
     description: 'SUBSTRING function injection attempt'
   
   - name: sleep_function
-    pattern: '\bsleep\s*\('
+    pattern: '(?i)\bsleep\s*\('
     description: 'SLEEP function time-based injection'
   
   - name: waitfor_delay
-    pattern: '\bwaitfor\s+delay\b'
+    pattern: '(?i)\bwaitfor\s+delay\b'
     description: 'WAITFOR DELAY time-based injection'
   
   - name: information_schema
-    pattern: '\binformation_schema\b'
+    pattern: '(?i)\binformation_schema\b'
     description: 'Information schema access attempt'
   
   - name: sys_tables
-    pattern: '\bsys\.\w+'
+    pattern: '(?i)\bsys\.\w+'
     description: 'System table access attempt'
   
   - name: version_function
-    pattern: '@@version|\bversion\s*\('
+    pattern: '(?i)@@version|\bversion\s*\('
     description: 'Database version disclosure attempt'
   
   - name: user_function
-    pattern: '@@user|\buser\s*\('
+    pattern: '(?i)@@user|\buser\s*\('
     description: 'Database user disclosure attempt'
+  
+  - name: or_true_bypass
+    pattern: "(?i)'\\s*or\\s+'.*'\\s*=\\s*'.*'"
+    description: 'OR true bypass attempt'
+  
+  - name: semicolon_injection
+    pattern: '(?i);.*\b(drop|delete|insert|update|create|alter)\b'
+    description: 'Semicolon command injection'
+  
+  - name: benchmark_function
+    pattern: '(?i)\bbenchmark\s*\('
+    description: 'BENCHMARK function time-based injection'
+  
+  - name: load_file
+    pattern: '(?i)\bload_file\s*\('
+    description: 'LOAD_FILE function injection'
+  
+  - name: into_outfile
+    pattern: '(?i)\binto\s+outfile\b'
+    description: 'INTO OUTFILE injection attempt'
