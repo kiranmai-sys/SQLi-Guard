@@ -1,5 +1,6 @@
 import os
 import asyncio
+import hashlib
 from supabase import create_client, Client
 from typing import Optional, List, Dict, Any
 
@@ -17,10 +18,30 @@ class SupabaseDB:
         # Admin client for service operations
         self.admin_client: Client = create_client(self.url, self.service_key)
     
+    def hash_password(self, password: str) -> str:
+        """Simple password hashing for demo purposes."""
+        return hashlib.sha256(password.encode()).hexdigest()
+    
+    def create_user(self, username: str, password: str, role: str = 'user') -> bool:
+        """Create a new user."""
+        try:
+            hashed_password = self.hash_password(password)
+            response = self.admin_client.table('users').insert({
+                'username': username,
+                'password': hashed_password,
+                'role': role
+            }).execute()
+            
+            return len(response.data) > 0
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            return False
+    
     def authenticate_user(self, username: str, password: str) -> Optional[Dict[str, Any]]:
         """Authenticate user with username and password."""
         try:
-            response = self.supabase.table('users').select('*').eq('username', username).eq('password', password).execute()
+            hashed_password = self.hash_password(password)
+            response = self.supabase.table('users').select('*').eq('username', username).eq('password', hashed_password).execute()
             
             if response.data and len(response.data) > 0:
                 return response.data[0]
@@ -28,6 +49,33 @@ class SupabaseDB:
         except Exception as e:
             print(f"Authentication error: {e}")
             return None
+    
+    def user_exists(self, username: str) -> bool:
+        """Check if user exists."""
+        try:
+            response = self.supabase.table('users').select('id').eq('username', username).execute()
+            return len(response.data) > 0
+        except Exception as e:
+            print(f"Error checking user existence: {e}")
+            return False
+    
+    def seed_demo_users(self) -> bool:
+        """Create demo users if they don't exist."""
+        try:
+            # Create admin user
+            if not self.user_exists('admin'):
+                self.create_user('admin', 'admin123', 'admin')
+                print("✅ Created admin user: admin/admin123")
+            
+            # Create test user
+            if not self.user_exists('testuser'):
+                self.create_user('testuser', 'password123', 'user')
+                print("✅ Created test user: testuser/password123")
+            
+            return True
+        except Exception as e:
+            print(f"Error seeding demo users: {e}")
+            return False
     
     def get_all_schedules(self) -> List[Dict[str, Any]]:
         """Get all schedules with creator information."""

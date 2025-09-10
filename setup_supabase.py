@@ -46,8 +46,13 @@ def test_connection():
         
         # Test basic connection
         schedules = db.get_all_schedules()
+        
+        # Seed demo users
+        db.seed_demo_users()
+        
         print(f"✅ Successfully connected to Supabase!")
         print(f"📊 Found {len(schedules)} schedules in database")
+        print("👥 Demo users are ready!")
         
         return True
     except Exception as e:

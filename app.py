@@ -16,6 +16,8 @@ app.config.from_object(Config)
 # Initialize Supabase connection
 try:
     db = get_supabase_db()
+    # Seed demo users on startup
+    db.seed_demo_users()
     print("✅ Successfully connected to Supabase!")
 except Exception as e:
     print(f"❌ Failed to connect to Supabase: {e}")
