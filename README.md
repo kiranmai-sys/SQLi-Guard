@@ -226,13 +226,8 @@ source .venv/bin/activate  # Linux/Mac
 # 📦 Install the arsenal
 pip install -r requirements.txt
 
-# ⚙️ Configure your shield
-cp .env.example .env
-# Edit .env with your Supabase credentials
-
-# 🛡️ Deploy the defenses
-python setup_supabase.py
-python seed_supabase.py   # Seed demo data (optional)
+# 🛡️ Setup local database (optional - runs automatically)
+python setup_local.py
 
 # 🚀 Launch the guardian
 python app.py
@@ -247,6 +242,50 @@ python app.py
 </p>
 
 </div>
+
+---
+
+## 🗄️ **Database Options**
+
+<div align="center">
+
+### 📊 **Choose Your Database**
+
+</div>
+
+<table>
+<tr>
+<td width="50%" align="center">
+
+### 🏠 **Local SQLite (Default)**
+- ✅ **Zero Configuration** - Works out of the box
+- ✅ **No External Dependencies** - Self-contained
+- ✅ **Perfect for Development** - Fast and reliable
+- ✅ **Automatic Setup** - Demo data included
+
+```bash
+# Just run the app!
+python app.py
+```
+
+</td>
+<td width="50%" align="center">
+
+### ☁️ **Supabase (Optional)**
+- ✅ **Cloud Database** - Scalable and managed
+- ✅ **Real-time Features** - Live updates
+- ✅ **Production Ready** - Enterprise grade
+- ✅ **Advanced Security** - Row Level Security
+
+```bash
+# Setup .env with Supabase credentials
+cp .env.example .env
+python setup_supabase.py
+```
+
+</td>
+</tr>
+</table>
 
 ---
 

@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, make_response, jsonify, session, flash
 from detectors.sqli import is_malicious
-from models.supabase_db import get_supabase_db
+from models.local_db import get_local_db
 from utils.rate_limiter import SimpleRateLimiter
 from config import Config
 import os
@@ -13,15 +13,16 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Initialize Supabase connection
+# Initialize Local Database connection
 try:
-    db = get_supabase_db()
+    db = get_local_db()
     # Seed demo users on startup
     db.seed_demo_users()
-    print("✅ Successfully connected to Supabase!")
+    # Seed sample data
+    db.seed_sample_data()
+    print("✅ Successfully connected to Local Database!")
 except Exception as e:
-    print(f"❌ Failed to connect to Supabase: {e}")
-    print("Please check your environment variables in .env file")
+    print(f"❌ Failed to initialize database: {e}")
     exit(1)
 
 rate_limiter = SimpleRateLimiter(limit=app.config['RATE_LIMIT_REQUESTS'], window=app.config['RATE_LIMIT_WINDOW'])
@@ -67,7 +68,7 @@ def login():
         resp.status_code = 403
         return resp
 
-    # Authenticate user with Supabase
+    # Authenticate user with Local Database
     user = db.authenticate_user(username, password)
 
     if user:
@@ -75,22 +76,27 @@ def login():
         session['username'] = user['username']
         session['role'] = user['role']
         
+        flash(f"Welcome back, {user['username']}!", "success")
+        
         if user['role'] == 'admin':
             return redirect(url_for('admin_dashboard'))
         else:
             return redirect(url_for('user_schedule'))
     else:
-        flash("Invalid credentials.", "error")
+        flash("Invalid credentials. Please try again.", "error")
         return render_template('login.html')
 
 @app.route('/logout')
 def logout():
+    username = session.get('username', 'User')
     session.clear()
+    flash(f"Goodbye, {username}! You have been logged out successfully.", "success")
     return redirect(url_for('index'))
 
 @app.route('/user/schedule')
 def user_schedule():
     if 'user_id' not in session:
+        flash("Please log in to access this page.", "error")
         return redirect(url_for('index'))
     
     schedules = db.get_all_schedules()
@@ -100,9 +106,10 @@ def user_schedule():
 @app.route('/admin/dashboard')
 def admin_dashboard():
     if 'user_id' not in session or session.get('role') != 'admin':
+        flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for('index'))
     
-    # Get security events and schedules from Supabase
+    # Get security events and schedules from Local Database
     security_events = db.get_security_events()
     schedules = db.get_all_schedules()
     
@@ -111,6 +118,7 @@ def admin_dashboard():
 @app.route('/admin/schedule/add', methods=['GET', 'POST'])
 def add_schedule():
     if 'user_id' not in session or session.get('role') != 'admin':
+        flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for('index'))
     
     if request.method == 'POST':
@@ -131,10 +139,10 @@ def add_schedule():
                 hit['snippet'],
                 request.headers.get('User-Agent', '')
             )
-            flash("Invalid input detected.", "error")
+            flash("Invalid input detected. Please check your data.", "error")
             return render_template('add_schedule.html')
         
-        # Create schedule in Supabase
+        # Create schedule in Local Database
         success = db.create_schedule(title, description, date, start_time, end_time, session['user_id'])
         
         if success:
@@ -149,6 +157,7 @@ def add_schedule():
 @app.route('/admin/schedule/delete/<int:schedule_id>')
 def delete_schedule(schedule_id):
     if 'user_id' not in session or session.get('role') != 'admin':
+        flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for('index'))
     
     success = db.delete_schedule(schedule_id)
@@ -169,4 +178,11 @@ def api_metrics():
     return jsonify(metrics)
 
 if __name__ == '__main__':
+    print("🛡️ SQLi Guard - Starting Application")
+    print("=" * 50)
+    print("✅ Local SQLite Database Ready")
+    print("🔐 Demo Credentials:")
+    print("   Admin: admin / admin123")
+    print("   User:  testuser / password123")
+    print("=" * 50)
     app.run(host='0.0.0.0', port=5000, debug=True)
