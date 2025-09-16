@@ -265,6 +265,9 @@ class LocalDB:
     def seed_sample_data(self) -> bool:
         """Seed sample schedules."""
         try:
+            # Seed fake security events first
+            self.seed_fake_security_events()
+            
             # Get admin user ID
             conn = sqlite3.connect(self.db_path)
             conn.row_factory = sqlite3.Row
@@ -307,6 +310,210 @@ class LocalDB:
             print(f"Error seeding sample data: {e}")
             return False
 
+    def seed_fake_security_events(self) -> bool:
+        """Seed fake security events for demonstration."""
+        try:
+            fake_events = [
+                {
+                    'ip': '192.168.1.100',
+                    'username': 'hacker123',
+                    'reason': 'UNION SELECT injection attempt',
+                    'pattern': r'(?i)\bunion\b\s+\bselect\b',
+                    'snippet': "admin' UNION SELECT username, password FROM users --",
+                    'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                },
+                {
+                    'ip': '10.0.0.50',
+                    'username': 'malicious_user',
+                    'reason': 'OR condition injection attempt',
+                    'pattern': r"(?i)'\s*or\s+\d+\s*=\s*\d+",
+                    'snippet': "admin' OR 1=1 --",
+                    'user_agent': 'curl/7.68.0'
+                },
+                {
+                    'ip': '172.16.0.25',
+                    'username': 'attacker',
+                    'reason': 'DROP TABLE injection attempt',
+                    'pattern': r'(?i)\bdrop\b\s+\btable\b',
+                    'snippet': "admin'; DROP TABLE users; --",
+                    'user_agent': 'Python-requests/2.25.1'
+                },
+                {
+                    'ip': '203.0.113.15',
+                    'username': 'script_kiddie',
+                    'reason': 'Always true condition injection',
+                    'pattern': r"(?i)'\s*or\s+'1'\s*=\s*'1",
+                    'snippet': "admin' OR '1'='1' --",
+                    'user_agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
+                },
+                {
+                    'ip': '198.51.100.42',
+                    'username': 'anonymous',
+                    'reason': 'SLEEP function time-based injection',
+                    'pattern': r'(?i)\bsleep\s*\(',
+                    'snippet': "admin'; SELECT SLEEP(5); --",
+                    'user_agent': 'Wget/1.20.3 (linux-gnu)'
+                },
+                {
+                    'ip': '192.0.2.88',
+                    'username': 'bot_scanner',
+                    'reason': 'Information schema access attempt',
+                    'pattern': r'(?i)\binformation_schema\b',
+                    'snippet': "admin' UNION SELECT * FROM information_schema.tables --",
+                    'user_agent': 'sqlmap/1.4.7#stable (http://sqlmap.org)'
+                },
+                {
+                    'ip': '203.0.113.99',
+                    'username': 'penetration_tester',
+                    'reason': 'Database version disclosure attempt',
+                    'pattern': r'(?i)@@version|\bversion\s*\(',
+                    'snippet': "admin' UNION SELECT @@version --",
+                    'user_agent': 'Burp Suite Professional'
+                },
+                {
+                    'ip': '10.0.0.123',
+                    'username': 'red_team',
+                    'reason': 'WAITFOR DELAY time-based injection',
+                    'pattern': r'(?i)\bwaitfor\s+delay\b',
+                    'snippet': "admin'; WAITFOR DELAY '00:00:05' --",
+                    'user_agent': 'Mozilla/5.0 (compatible; Nmap Scripting Engine)'
+                },
+                {
+                    'ip': '172.16.0.77',
+                    'username': 'automated_scanner',
+                    'reason': 'Hexadecimal encoding injection',
+                    'pattern': r'(?i)0x[0-9a-fA-F]+',
+                    'snippet': "admin' AND 1=0x41424344 --",
+                    'user_agent': 'Nikto/2.1.6'
+                },
+                {
+                    'ip': '198.51.100.200',
+                    'username': 'threat_actor',
+                    'reason': 'Comment injection attempt',
+                    'pattern': r'(?i)--|#|/\*',
+                    'snippet': "admin'/* malicious comment */--",
+                    'user_agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0)'
+                }
+            ]
+            
+            conn = sqlite3.connect(self.db_path)
+            cur = conn.cursor()
+            
+            # Check if fake events already exist
+            cur.execute('SELECT COUNT(*) FROM security_events WHERE ip = ?', ('192.168.1.100',))
+            if cur.fetchone()[0] > 0:
+                conn.close()
+                return True  # Already seeded
+            
+            # Insert fake security events with timestamps spread over the last few days
+            from datetime import datetime, timedelta
+            import random
+            
+            for i, event in enumerate(fake_events):
+                # Create timestamps spread over the last 7 days
+                days_ago = random.randint(0, 7)
+                hours_ago = random.randint(0, 23)
+                minutes_ago = random.randint(0, 59)
+                
+                timestamp = datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
+                
+                cur.execute('''
+                    INSERT INTO security_events (ts, ip, username, reason, pattern, snippet, user_agent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    timestamp.isoformat(),
+                    event['ip'],
+                    event['username'],
+                    event['reason'],
+                    event['pattern'],
+                    event['snippet'],
+                    event['user_agent']
+                ))
+            
+            conn.commit()
+            conn.close()
+            print("✅ Fake security events created successfully!")
+            return True
+        except Exception as e:
+            print(f"Error seeding fake security events: {e}")
+            return False
+    
+    def seed_fake_users(self) -> bool:
+        """Create additional fake users for demonstration."""
+        try:
+            fake_users = [
+                ('john_doe', 'password123', 'user'),
+                ('jane_smith', 'securepass456', 'user'),
+                ('bob_wilson', 'mypassword789', 'user'),
+                ('alice_johnson', 'strongpass321', 'user'),
+                ('charlie_brown', 'userpass654', 'user'),
+                ('diana_prince', 'wonderpass987', 'user'),
+                ('peter_parker', 'spideypass123', 'user'),
+                ('mary_jane', 'mjpass456', 'user'),
+                ('bruce_wayne', 'batmanpass789', 'user'),
+                ('clark_kent', 'supermanpass321', 'user'),
+                ('security_admin', 'secadmin123', 'admin'),
+                ('system_monitor', 'monitor456', 'admin')
+            ]
+            
+            for username, password, role in fake_users:
+                if not self.user_exists(username):
+                    self.create_user(username, password, role)
+            
+            print("✅ Fake users created successfully!")
+            return True
+        except Exception as e:
+            print(f"Error seeding fake users: {e}")
+            return False
+    
+    def get_all_users(self) -> List[Dict[str, Any]]:
+        """Get all users for admin management."""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            
+            cur.execute('''
+                SELECT id, username, role, created_at
+                FROM users
+                ORDER BY created_at DESC
+            ''')
+            
+            users = [dict(row) for row in cur.fetchall()]
+            conn.close()
+            
+            return users
+        except Exception as e:
+            print(f"Error fetching users: {e}")
+            return []
+    
+    def delete_user(self, user_id: int) -> bool:
+        """Delete a user by ID (except admin users)."""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cur = conn.cursor()
+            
+            # Check if user is admin
+            cur.execute('SELECT role FROM users WHERE id = ?', (user_id,))
+            user = cur.fetchone()
+            
+            if not user:
+                conn.close()
+                return False
+            
+            # Don't allow deletion of admin users
+            if user[0] == 'admin':
+                conn.close()
+                return False
+            
+            cur.execute('DELETE FROM users WHERE id = ?', (user_id,))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
 # Global instance
 local_db = None
 

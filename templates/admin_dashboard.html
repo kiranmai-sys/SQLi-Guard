@@ -12,6 +12,7 @@
     <div class="dashboard-tabs">
         <button class="tab-button active" onclick="showTab('security')">Security Events</button>
         <button class="tab-button" onclick="showTab('schedules')">Schedules</button>
+        <button class="tab-button" onclick="showTab('users')">User Management</button>
     </div>
     
     <!-- Security Events Tab -->
@@ -94,6 +95,61 @@
                     <p>No schedules have been created yet.</p>
                     <a href="{{ url_for('add_schedule') }}" class="btn btn-primary">Create First Schedule</a>
                 </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- User Management Tab -->
+    <div id="users-tab" class="tab-content">
+        <div class="section-header">
+            <h3>👥 User Management</h3>
+            <span class="event-count">{{ users|length }} users</span>
+        </div>
+        
+        <div class="events-table-container">
+            {% if users %}
+            <table class="events-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="user-id">{{ user.id }}</td>
+                        <td class="username">{{ user.username }}</td>
+                        <td class="user-role">
+                            {% if user.role == 'admin' %}
+                                <span class="role-badge admin-role">Admin</span>
+                            {% else %}
+                                <span class="role-badge user-role">User</span>
+                            {% endif %}
+                        </td>
+                        <td class="timestamp">{{ user.created_at }}</td>
+                        <td class="user-actions">
+                            {% if user.role != 'admin' %}
+                                <a href="{{ url_for('delete_user', user_id=user.id) }}" 
+                                   class="btn btn-danger btn-small"
+                                   onclick="return confirm('Are you sure you want to delete user {{ user.username }}?')">Delete</a>
+                            {% else %}
+                                <span class="protected-user">Protected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-events">
+                <div class="no-events-icon">👥</div>
+                <h4>No Users Found</h4>
+                <p>No users have been created yet.</p>
+            </div>
             {% endif %}
         </div>
     </div>

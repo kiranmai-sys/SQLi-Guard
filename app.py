@@ -18,6 +18,8 @@ try:
     db = get_local_db()
     # Seed demo users on startup
     db.seed_demo_users()
+    # Seed fake users for demonstration
+    db.seed_fake_users()
     # Seed sample data
     db.seed_sample_data()
     print("✅ Successfully connected to Local Database!")
@@ -112,8 +114,9 @@ def admin_dashboard():
     # Get security events and schedules from Local Database
     security_events = db.get_security_events()
     schedules = db.get_all_schedules()
+    users = db.get_all_users()
     
-    return render_template('admin_dashboard.html', security_events=security_events, schedules=schedules)
+    return render_template('admin_dashboard.html', security_events=security_events, schedules=schedules, users=users)
 
 @app.route('/admin/schedule/add', methods=['GET', 'POST'])
 def add_schedule():
@@ -166,6 +169,21 @@ def delete_schedule(schedule_id):
         flash("Schedule deleted successfully!", "success")
     else:
         flash("Error deleting schedule. Please try again.", "error")
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/user/delete/<int:user_id>')
+def delete_user(user_id):
+    if 'user_id' not in session or session.get('role') != 'admin':
+        flash("Access denied. Admin privileges required.", "error")
+        return redirect(url_for('index'))
+    
+    success = db.delete_user(user_id)
+    
+    if success:
+        flash("User deleted successfully!", "success")
+    else:
+        flash("Error deleting user. Admin users cannot be deleted.", "error")
     
     return redirect(url_for('admin_dashboard'))
 

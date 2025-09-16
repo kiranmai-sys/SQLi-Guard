@@ -567,6 +567,46 @@ body {
     font-size: 0.8rem;
 }
 
+/* User Management Styles */
+.user-id {
+    font-family: monospace;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.username {
+    font-weight: 600;
+    color: var(--accent-text);
+}
+
+.role-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.admin-role {
+    background: var(--danger-color);
+    color: white;
+}
+
+.user-role {
+    background: var(--primary-color);
+    color: white;
+}
+
+.user-actions {
+    text-align: center;
+}
+
+.protected-user {
+    color: var(--secondary-text);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
 /* Form Cards */
 .form-card {
     background: var(--card-bg);
