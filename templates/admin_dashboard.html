@@ -4,204 +4,298 @@
 
 {% block content %}
 <div class="dashboard-container">
-    <div class="dashboard-header">
-        <h2>🛡️ Admin Dashboard</h2>
-        <p>Security monitoring and schedule management</p>
+    <!-- Hero Section -->
+    <div class="dashboard-hero">
+        <div class="hero-content">
+            <div class="hero-icon">🛡️</div>
+            <h1 class="hero-title">Admin Dashboard</h1>
+            <p class="hero-subtitle">Security monitoring and system management</p>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ security_events|length }}</div>
+                    <div class="stat-label">Security Events</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ schedules|length }}</div>
+                    <div class="stat-label">Schedules</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ users|length }}</div>
+                    <div class="stat-label">Users</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-background"></div>
     </div>
-    
-    <div class="dashboard-tabs">
-        <button class="tab-button active" onclick="showTab(event, 'security')">Security Events</button>
-        <button class="tab-button" onclick="showTab(event, 'schedules')">Schedules</button>
-        <button class="tab-button" onclick="showTab(event, 'users')">User Management</button>
+
+    <!-- Navigation Pills -->
+    <div class="nav-pills">
+        <a href="#security-section" class="nav-pill active" data-section="security">
+            <span class="pill-icon">🚨</span>
+            <span class="pill-text">Security Events</span>
+        </a>
+        <a href="#schedules-section" class="nav-pill" data-section="schedules">
+            <span class="pill-icon">📅</span>
+            <span class="pill-text">Schedules</span>
+        </a>
+        <a href="#users-section" class="nav-pill" data-section="users">
+            <span class="pill-icon">👥</span>
+            <span class="pill-text">User Management</span>
+        </a>
     </div>
-    
-    <!-- Security Events Tab -->
-    <div id="security-tab" class="tab-content active">
+
+    <!-- Security Events Section -->
+    <section id="security-section" class="dashboard-section">
         <div class="section-header">
-            <h3>🚨 Recent Security Events</h3>
-            <span class="event-count">{{ security_events|length }} events</span>
+            <div class="section-title">
+                <span class="section-icon">🚨</span>
+                <h2>Recent Security Events</h2>
+            </div>
+            <div class="section-badge">{{ security_events|length }} events</div>
         </div>
         
-        <div class="events-table-container">
+        <div class="section-content">
             {% if security_events %}
-            <table class="events-table">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>IP Address</th>
-                        <th>Username</th>
-                        <th>Threat Type</th>
-                        <th>Snippet</th>
-                        <th>User Agent</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for event in security_events %}
-                    <tr>
-                        <td class="timestamp">{{ event.ts }}</td>
-                        <td class="ip-address">{{ event.ip }}</td>
-                        <td class="username">{{ event.username or 'N/A' }}</td>
-                        <td class="threat-type">{{ event.reason }}</td>
-                        <td class="snippet">{{ event.snippet[:50] }}{% if event.snippet|length > 50 %}...{% endif %}</td>
-                        <td class="user-agent">{{ event.user_agent[:30] }}{% if event.user_agent|length > 30 %}...{% endif %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="events-grid">
+                {% for event in security_events %}
+                <div class="event-card" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                    <div class="event-header">
+                        <div class="event-type">{{ event.reason }}</div>
+                        <div class="event-time">{{ event.ts }}</div>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-row">
+                            <span class="event-label">IP Address:</span>
+                            <span class="event-value ip-address">{{ event.ip }}</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">Username:</span>
+                            <span class="event-value">{{ event.username or 'N/A' }}</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">Pattern:</span>
+                            <span class="event-value code-snippet">{{ event.snippet[:50] }}{% if event.snippet|length > 50 %}...{% endif %}</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">User Agent:</span>
+                            <span class="event-value user-agent">{{ event.user_agent[:40] }}{% if event.user_agent|length > 40 %}...{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
             {% else %}
-            <div class="no-events">
-                <div class="no-events-icon">✅</div>
-                <h4>No Security Events</h4>
+            <div class="empty-state" data-aos="fade-up">
+                <div class="empty-icon">✅</div>
+                <h3>No Security Events</h3>
                 <p>All systems secure - no threats detected recently.</p>
             </div>
             {% endif %}
         </div>
-    </div>
-    
-    <!-- Schedules Tab -->
-    <div id="schedules-tab" class="tab-content">
+    </section>
+
+    <!-- Schedules Section -->
+    <section id="schedules-section" class="dashboard-section">
         <div class="section-header">
-            <h3>📅 Schedule Management</h3>
-            <a href="{{ url_for('add_schedule') }}" class="btn btn-primary">Add New Schedule</a>
+            <div class="section-title">
+                <span class="section-icon">📅</span>
+                <h2>Schedule Management</h2>
+            </div>
+            <a href="{{ url_for('add_schedule') }}" class="action-btn primary">
+                <span class="btn-icon">➕</span>
+                Add Schedule
+            </a>
         </div>
         
-        <div class="schedules-grid">
+        <div class="section-content">
             {% if schedules %}
+            <div class="schedules-grid">
                 {% for schedule in schedules %}
-                <div class="admin-schedule-card">
+                <div class="schedule-card" data-aos="slide-up" data-aos-delay="{{ loop.index0 * 150 }}">
                     <div class="schedule-header">
                         <div class="schedule-date">{{ schedule.date }}</div>
                         <div class="schedule-actions">
                             <a href="{{ url_for('delete_schedule', schedule_id=schedule.id) }}" 
-                               class="btn btn-danger btn-small"
-                               onclick="return confirm('Are you sure you want to delete this schedule?')">Delete</a>
+                               class="action-btn danger small"
+                               onclick="return confirm('Are you sure you want to delete this schedule?')">
+                                <span class="btn-icon">🗑️</span>
+                                Delete
+                            </a>
                         </div>
                     </div>
                     <div class="schedule-time">{{ schedule.start_time }} - {{ schedule.end_time }}</div>
-                    <h4 class="schedule-title">{{ schedule.title }}</h4>
+                    <h3 class="schedule-title">{{ schedule.title }}</h3>
                     {% if schedule.description %}
                     <p class="schedule-description">{{ schedule.description }}</p>
                     {% endif %}
                     <div class="schedule-meta">
-                        <span>Created by: {{ schedule.created_by_name }}</span>
-                        <span>{{ schedule.created_at }}</span>
+                        <span class="schedule-creator">Created by: {{ schedule.created_by_name }}</span>
+                        <span class="schedule-timestamp">{{ schedule.created_at }}</span>
                     </div>
                 </div>
                 {% endfor %}
+            </div>
             {% else %}
-                <div class="no-schedule">
-                    <div class="no-schedule-icon">📋</div>
-                    <h4>No Schedules</h4>
-                    <p>No schedules have been created yet.</p>
-                    <a href="{{ url_for('add_schedule') }}" class="btn btn-primary">Create First Schedule</a>
-                </div>
+            <div class="empty-state" data-aos="fade-up">
+                <div class="empty-icon">📋</div>
+                <h3>No Schedules</h3>
+                <p>No schedules have been created yet.</p>
+                <a href="{{ url_for('add_schedule') }}" class="action-btn primary">Create First Schedule</a>
+            </div>
             {% endif %}
         </div>
-    </div>
-    
-    <!-- User Management Tab -->
-    <div id="users-tab" class="tab-content">
+    </section>
+
+    <!-- Users Section -->
+    <section id="users-section" class="dashboard-section">
         <div class="section-header">
-            <h3>👥 User Management</h3>
-            <span class="event-count">{{ users|length }} users</span>
+            <div class="section-title">
+                <span class="section-icon">👥</span>
+                <h2>User Management</h2>
+            </div>
+            <div class="section-badge">{{ users|length }} users</div>
         </div>
         
-        <div class="events-table-container">
+        <div class="section-content">
             {% if users %}
-            <table class="events-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td class="user-id">{{ user.id }}</td>
-                        <td class="username">{{ user.username }}</td>
-                        <td class="user-role">
+            <div class="users-grid">
+                {% for user in users %}
+                <div class="user-card" data-aos="zoom-in" data-aos-delay="{{ loop.index0 * 100 }}">
+                    <div class="user-avatar">
+                        <span class="avatar-text">{{ user.username[0]|upper }}</span>
+                    </div>
+                    <div class="user-info">
+                        <h3 class="user-name">{{ user.username }}</h3>
+                        <div class="user-role">
                             {% if user.role == 'admin' %}
-                                <span class="role-badge admin-role">Admin</span>
+                                <span class="role-badge admin">🛡️ Admin</span>
                             {% else %}
-                                <span class="role-badge user-role">User</span>
+                                <span class="role-badge user">👤 User</span>
                             {% endif %}
-                        </td>
-                        <td class="timestamp">{{ user.created_at }}</td>
-                        <td class="user-actions">
-                            {% if user.role != 'admin' %}
-                                <a href="{{ url_for('delete_user', user_id=user.id) }}" 
-                                   class="btn btn-danger btn-small"
-                                   onclick="return confirm('Are you sure you want to delete user {{ user.username }}?')">Delete</a>
-                            {% else %}
-                                <span class="protected-user">Protected</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </div>
+                        <div class="user-meta">
+                            <span class="user-id">ID: {{ user.id }}</span>
+                            <span class="user-created">{{ user.created_at }}</span>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        {% if user.role != 'admin' %}
+                            <a href="{{ url_for('delete_user', user_id=user.id) }}" 
+                               class="action-btn danger small"
+                               onclick="return confirm('Are you sure you want to delete user {{ user.username }}?')">
+                                <span class="btn-icon">🗑️</span>
+                                Delete
+                            </a>
+                        {% else %}
+                            <span class="protected-badge">🔒 Protected</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
             {% else %}
-            <div class="no-events">
-                <div class="no-events-icon">👥</div>
-                <h4>No Users Found</h4>
+            <div class="empty-state" data-aos="fade-up">
+                <div class="empty-icon">👥</div>
+                <h3>No Users Found</h3>
                 <p>No users have been created yet.</p>
             </div>
             {% endif %}
         </div>
-    </div>
+    </section>
 </div>
 
-<script>
-function showTab(evt, tabName) {
-    // Hide all tab contents
-    var tabcontent = document.getElementsByClassName("tab-content");
-    for (var i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].classList.remove('active');
-        tabcontent[i].style.display = "none";
-    }
-    
-    // Remove active class from all tab buttons
-    var tablinks = document.getElementsByClassName("tab-button");
-    for (var i = 0; i < tablinks.length; i++) {
-        tablinks[i].classList.remove('active');
-    }
-    
-    // Show the selected tab and mark button as active
-    document.getElementById(tabName + '-tab').style.display = "block";
-    document.getElementById(tabName + '-tab').classList.add('active');
-    evt.currentTarget.classList.add('active');
-}
+<!-- Scroll to Top Button -->
+<button id="scrollToTop" class="scroll-to-top">
+    <span>↑</span>
+</button>
 
-// Initialize tabs on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Hide all tab contents except the first one
-    var tabcontent = document.getElementsByClassName("tab-content");
-    for (var i = 0; i < tabcontent.length; i++) {
-        tab.classList.remove('active');
-        if (i === 0) {
-            tabcontent[i].style.display = "block";
-            tabcontent[i].classList.add('active');
-        } else {
-            tabcontent[i].style.display = "none";
+<script>
+// Smooth scrolling for navigation pills
+document.querySelectorAll('.nav-pill').forEach(pill => {
+    pill.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all pills
+        document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+        
+        // Add active class to clicked pill
+        this.classList.add('active');
+        
+        // Smooth scroll to section
+        const targetId = this.getAttribute('href');
+        const targetSection = document.querySelector(targetId);
+        
+        if (targetSection) {
+            targetSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
-    }
+    });
+});
+
+// Update active pill on scroll
+window.addEventListener('scroll', function() {
+    const sections = document.querySelectorAll('.dashboard-section');
+    const pills = document.querySelectorAll('.nav-pill');
     
-    // Set first tab button as active
-    var tablinks = document.getElementsByClassName("tab-button");
-    if (tablinks.length > 0) {
-        tablinks[0].classList.add('active');
+    let current = '';
+    
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop - 200;
+        const sectionHeight = section.offsetHeight;
+        
+        if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+            current = section.getAttribute('id');
+        }
+    });
+    
+    pills.forEach(pill => {
+        pill.classList.remove('active');
+        if (pill.getAttribute('href') === '#' + current) {
+            pill.classList.add('active');
+        }
+    });
+});
+
+// Scroll to top functionality
+const scrollToTopBtn = document.getElementById('scrollToTop');
+
+window.addEventListener('scroll', function() {
+    if (window.scrollY > 300) {
+        scrollToTopBtn.classList.add('visible');
+    } else {
+        scrollToTopBtn.classList.remove('visible');
     }
 });
-</script>
-{% endblock %}
+
+scrollToTopBtn.addEventListener('click', function() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+
+// Initialize AOS (Animate On Scroll) library
+document.addEventListener('DOMContentLoaded', function() {
+    // Simple animation on scroll implementation
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
     
-    // Show selected tab
-    document.getElementById(tabName + '-tab').classList.add('active');
-    event.target.classList.add('active');
-}
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all animated elements
+    document.querySelectorAll('[data-aos]').forEach(el => {
+        observer.observe(el);
+    });
+});
 </script>
 {% endblock %}
