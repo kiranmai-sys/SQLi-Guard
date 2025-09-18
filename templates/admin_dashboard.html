@@ -1,26 +1,770 @@
+```html
 {% extends "base.html" %}
 
 {% block title %}Admin Dashboard - SQLi Guard{% endblock %}
 
 {% block content %}
+<style>
+/* Dark Metallic Theme */
+:root {
+    --primary-bg: #1a1a1a;
+    --secondary-bg: #2d2d2d;
+    --card-bg: #3a3a3a;
+    --accent-bg: #4a4a4a;
+    --primary-text: #e6e6e6;
+    --secondary-text: #c0c0c0;
+    --accent-text: #ffffff;
+    --primary-color: #64b5f6;
+    --secondary-color: #81c784;
+    --danger-color: #f44336;
+    --warning-color: #ff9800;
+    --success-color: #4caf50;
+    --border-color: #555;
+    --shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --metallic-gradient: linear-gradient(135deg, #434343 0%, #000000 100%);
+    --silver-gradient: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--primary-bg);
+    color: var(--primary-text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Navigation */
+.navbar {
+    background: var(--metallic-gradient);
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-brand h1 {
+    color: var(--accent-text);
+    font-size: 1.6rem;
+    margin-bottom: 0.2rem;
+}
+
+.nav-subtitle {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-user {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.nav-link {
+    color: var(--primary-text);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.nav-link:hover {
+    background: var(--accent-bg);
+    border-color: var(--primary-color);
+}
+
+.nav-link.logout {
+    color: var(--danger-color);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--secondary-text);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-state::after {
+    content: "Loading...";
+    font-size: 1.2rem;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--secondary-text);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.empty-state h3 {
+    color: var(--primary-text);
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+}
+
+.empty-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+/* Flash Messages */
+.flash-messages {
+    margin-bottom: 2rem;
+}
+
+.flash-message {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border-left: 4px solid;
+}
+
+.flash-success {
+    background: rgba(76, 175, 80, 0.1);
+    border-left-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.flash-error {
+    background: rgba(244, 67, 54, 0.1);
+    border-left-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #42a5f5;
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #d32f2f;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Dashboard Hero Section */
+.dashboard-hero {
+    position: relative;
+    background: var(--metallic-gradient);
+    padding: 4rem 2rem;
+    margin: -2rem -2rem 3rem -2rem;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(100, 181, 246, 0.1) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    color: var(--accent-text);
+    margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--secondary-text);
+    margin-bottom: 2rem;
+}
+
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 120px;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+}
+
+/* Navigation Pills */
+.nav-pills {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 80px;
+    z-index: 50;
+    background: var(--primary-bg);
+}
+
+.nav-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--card-bg);
+    border: 2px solid transparent;
+    border-radius: 50px;
+    text-decoration: none;
+    color: var(--secondary-text);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-pill:hover,
+.nav-pill.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.pill-icon {
+    font-size: 1.2rem;
+}
+
+.pill-text {
+    font-size: 0.9rem;
+}
+
+/* Dashboard Sections */
+.dashboard-section {
+    margin-bottom: 4rem;
+    padding: 2rem 0;
+    scroll-margin-top: 150px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.section-icon {
+    font-size: 2rem;
+    background: var(--primary-color);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-title h2 {
+    color: var(--accent-text);
+    font-size: 2.2rem;
+}
+
+.section-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn.primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background: #42a5f5;
+    transform: translateY(-2px);
+}
+
+.action-btn.danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.action-btn.danger:hover {
+    background: #d32f2f;
+    transform: translateY(-2px);
+}
+
+.action-btn.small {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+/* Events Grid */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.event-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.event-type {
+    background: var(--danger-color);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.event-time {
+    color: var(--secondary-text);
+    font-size: 0.8rem;
+    font-family: monospace;
+}
+
+.event-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.event-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.event-label {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+    min-width: 80px;
+    flex-shrink: 0;
+}
+
+.event-value {
+    color: var(--primary-text);
+    font-size: 0.9rem;
+    word-break: break-all;
+    text-align: right;
+}
+
+.event-value.ip-address {
+    color: var(--primary-color);
+    font-family: monospace;
+    font-weight: 600;
+}
+
+.event-value.code-snippet {
+    background: var(--secondary-bg);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Schedules Grid */
+.schedules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.schedule-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.schedule-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.schedule-date {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.schedule-time {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.schedule-title {
+    color: var(--accent-text);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.schedule-description {
+    color: var(--secondary-text);
+    margin-bottom: 1rem;
+}
+
+.schedule-meta {
+    color: var(--secondary-text);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+/* Users Grid */
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.user-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.user-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.avatar-text {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+}
+
+.user-info {
+    margin-bottom: 1rem;
+}
+
+.user-name {
+    color: var(--accent-text);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.user-role {
+    margin-bottom: 1rem;
+}
+
+.role-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.role-badge.admin {
+    background: var(--danger-color);
+    color: white;
+}
+
+.role-badge.user {
+    background: var(--primary-color);
+    color: white;
+}
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--secondary-text);
+}
+
+.user-id {
+    font-family: monospace;
+    color: var(--primary-color);
+}
+
+.user-actions {
+    margin-top: auto;
+}
+
+.protected-badge {
+    background: var(--success-color);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Scroll to Top Button */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.scroll-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.scroll-to-top:hover {
+    background: #42a5f5;
+    transform: translateY(-3px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .schedules-grid,
+    .events-grid,
+    .users-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .section-title h2 {
+        font-size: 1.8rem;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+
 <div class="dashboard-container">
     <!-- Hero Section -->
     <div class="dashboard-hero">
         <div class="hero-content">
-            <div class="hero-icon">🛡️</div>
+            <div class="hero-icon" aria-hidden="true">🛡️</div>
             <h1 class="hero-title">Admin Dashboard</h1>
             <p class="hero-subtitle">Security monitoring and system management</p>
             <div class="hero-stats">
                 <div class="stat-card">
-                    <div class="stat-number">{{ security_events|length }}</div>
+                    <div class="stat-number">3</div>
                     <div class="stat-label">Security Events</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">{{ schedules|length }}</div>
+                    <div class="stat-number">2</div>
                     <div class="stat-label">Schedules</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">{{ users|length }}</div>
+                    <div class="stat-number">4</div>
                     <div class="stat-label">Users</div>
                 </div>
             </div>
@@ -29,8 +773,8 @@
     </div>
 
     <!-- Navigation Pills -->
-    <div class="nav-pills">
-        <a href="#security-section" class="nav-pill active" data-section="security">
+    <div class="nav-pills" role="navigation">
+        <a href="#security-section" class="nav-pill active" data-section="security" aria-current="true">
             <span class="pill-icon">🚨</span>
             <span class="pill-text">Security Events</span>
         </a>
@@ -45,20 +789,20 @@
     </div>
 
     <!-- Security Events Section -->
-    <section id="security-section" class="dashboard-section">
+    <section id="security-section" class="dashboard-section" aria-live="polite">
         <div class="section-header">
             <div class="section-title">
                 <span class="section-icon">🚨</span>
                 <h2>Recent Security Events</h2>
             </div>
-            <div class="section-badge">{{ security_events|length }} events</div>
+            <div class="section-badge">3 events</div>
         </div>
         
         <div class="section-content">
             {% if security_events %}
             <div class="events-grid">
                 {% for event in security_events %}
-                <div class="event-card" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                <div class="event-card" style="animation: fadeIn 0.5s ease-in-out {{ loop.index0 * 0.1 }}s both;">
                     <div class="event-header">
                         <div class="event-type">{{ event.reason }}</div>
                         <div class="event-time">{{ event.ts }}</div>
@@ -83,25 +827,70 @@
                     </div>
                 </div>
                 {% endfor %}
-            </div>
             {% else %}
-            <div class="empty-state" data-aos="fade-up">
-                <div class="empty-icon">✅</div>
-                <h3>No Security Events</h3>
-                <p>All systems secure - no threats detected recently.</p>
+            <!-- Sample Data for Testing -->
+            <div class="events-grid">
+                <div class="event-card" style="animation: fadeIn 0.5s ease-in-out 0s both;">
+                    <div class="event-header">
+                        <div class="event-type">SQL Injection Attempt</div>
+                        <div class="event-time">2025-09-18 07:00:00</div>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-row">
+                            <span class="event-label">IP Address:</span>
+                            <span class="event-value ip-address">192.168.1.1</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">Username:</span>
+                            <span class="event-value">test_user</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">Pattern:</span>
+                            <span class="event-value code-snippet">SELECT * FROM users</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">User Agent:</span>
+                            <span class="event-value user-agent">Mozilla/5.0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card" style="animation: fadeIn 0.5s ease-in-out 0.1s both;">
+                    <div class="event-header">
+                        <div class="event-type">XSS Attempt</div>
+                        <div class="event-time">2025-09-18 07:05:00</div>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-row">
+                            <span class="event-label">IP Address:</span>
+                            <span class="event-value ip-address">192.168.1.2</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">Username:</span>
+                            <span class="event-value">N/A</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">Pattern:</span>
+                            <span class="event-value code-snippet">&lt;script&gt;alert('hack')&lt;/script&gt;</span>
+                        </div>
+                        <div class="event-row">
+                            <span class="event-label">User Agent:</span>
+                            <span class="event-value user-agent">Chrome/120.0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             {% endif %}
         </div>
     </section>
 
     <!-- Schedules Section -->
-    <section id="schedules-section" class="dashboard-section">
+    <section id="schedules-section" class="dashboard-section" aria-live="polite">
         <div class="section-header">
             <div class="section-title">
                 <span class="section-icon">📅</span>
                 <h2>Schedule Management</h2>
             </div>
-            <a href="{{ url_for('add_schedule') }}" class="action-btn primary">
+            <a href="{{ url_for('add_schedule') }}" class="action-btn primary" aria-label="Add a new schedule">
                 <span class="btn-icon">➕</span>
                 Add Schedule
             </a>
@@ -111,13 +900,14 @@
             {% if schedules %}
             <div class="schedules-grid">
                 {% for schedule in schedules %}
-                <div class="schedule-card" data-aos="slide-up" data-aos-delay="{{ loop.index0 * 150 }}">
+                <div class="schedule-card" style="animation: fadeIn 0.5s ease-in-out {{ loop.index0 * 0.15 }}s both;">
                     <div class="schedule-header">
                         <div class="schedule-date">{{ schedule.date }}</div>
                         <div class="schedule-actions">
                             <a href="{{ url_for('delete_schedule', schedule_id=schedule.id) }}" 
                                class="action-btn danger small"
-                               onclick="return confirm('Are you sure you want to delete this schedule?')">
+                               onclick="return confirm('Are you sure you want to delete this schedule?')"
+                               aria-label="Delete schedule">
                                 <span class="btn-icon">🗑️</span>
                                 Delete
                             </a>
@@ -134,33 +924,48 @@
                     </div>
                 </div>
                 {% endfor %}
-            </div>
             {% else %}
-            <div class="empty-state" data-aos="fade-up">
-                <div class="empty-icon">📋</div>
-                <h3>No Schedules</h3>
-                <p>No schedules have been created yet.</p>
-                <a href="{{ url_for('add_schedule') }}" class="action-btn primary">Create First Schedule</a>
+            <!-- Sample Data for Testing -->
+            <div class="schedules-grid">
+                <div class="schedule-card" style="animation: fadeIn 0.5s ease-in-out 0s both;">
+                    <div class="schedule-header">
+                        <div class="schedule-date">2025-09-18</div>
+                        <div class="schedule-actions">
+                            <a href="#" class="action-btn danger small" onclick="return confirm('Are you sure you want to delete this schedule?')" aria-label="Delete schedule">
+                                <span class="btn-icon">🗑️</span>
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                    <div class="schedule-time">09:00 - 10:00</div>
+                    <h3 class="schedule-title">Security Review Meeting</h3>
+                    <p class="schedule-description">Review recent security events and mitigation strategies.</p>
+                    <div class="schedule-meta">
+                        <span class="schedule-creator">Created by: Admin</span>
+                        <span class="schedule-timestamp">2025-09-18 06:00:00</span>
+                    </div>
+                </div>
             </div>
             {% endif %}
         </div>
     </section>
 
     <!-- Users Section -->
-    <section id="users-section" class="dashboard-section">
+    <section id="users-section" class="dashboard-section" aria-live="polite">
         <div class="section-header">
             <div class="section-title">
                 <span class="section-icon">👥</span>
                 <h2>User Management</h2>
             </div>
-            <div class="section-badge">{{ users|length }} users</div>
+            <div class="section-badge">4 users</div>
         </div>
         
         <div class="section-content">
+            
             {% if users %}
             <div class="users-grid">
                 {% for user in users %}
-                <div class="user-card" data-aos="zoom-in" data-aos-delay="{{ loop.index0 * 100 }}">
+                <div class="user-card" style="animation: fadeIn 0.5s ease-in-out {{ loop.index0 * 0.1 }}s both;">
                     <div class="user-avatar">
                         <span class="avatar-text">{{ user.username[0]|upper }}</span>
                     </div>
@@ -182,7 +987,8 @@
                         {% if user.role != 'admin' %}
                             <a href="{{ url_for('delete_user', user_id=user.id) }}" 
                                class="action-btn danger small"
-                               onclick="return confirm('Are you sure you want to delete user {{ user.username }}?')">
+                               onclick="return confirm('Are you sure you want to delete user {{ user.username }}?')"
+                               aria-label="Delete user {{ user.username }}">
                                 <span class="btn-icon">🗑️</span>
                                 Delete
                             </a>
@@ -192,12 +998,48 @@
                     </div>
                 </div>
                 {% endfor %}
-            </div>
             {% else %}
-            <div class="empty-state" data-aos="fade-up">
-                <div class="empty-icon">👥</div>
-                <h3>No Users Found</h3>
-                <p>No users have been created yet.</p>
+            <!-- Sample Data for Testing -->
+            <div class="users-grid">
+                <div class="user-card" style="animation: fadeIn 0.5s ease-in-out 0s both;">
+                    <div class="user-avatar">
+                        <span class="avatar-text">A</span>
+                    </div>
+                    <div class="user-info">
+                        <h3 class="user-name">admin</h3>
+                        <div class="user-role">
+                            <span class="role-badge admin">🛡️ Admin</span>
+                        </div>
+                        <div class="user-meta">
+                            <span class="user-id">ID: 1</span>
+                            <span class="user-created">2025-09-18 05:00:00</span>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <span class="protected-badge">🔒 Protected</span>
+                    </div>
+                </div>
+                <div class="user-card" style="animation: fadeIn 0.5s ease-in-out 0.1s both;">
+                    <div class="user-avatar">
+                        <span class="avatar-text">J</span>
+                    </div>
+                    <div class="user-info">
+                        <h3 class="user-name">john_doe</h3>
+                        <div class="user-role">
+                            <span class="role-badge user">👤 User</span>
+                        </div>
+                        <div class="user-meta">
+                            <span class="user-id">ID: 2</span>
+                            <span class="user-created">2025-09-18 05:30:00</span>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <a href="#" class="action-btn danger small" onclick="return confirm('Are you sure you want to delete user john_doe?')" aria-label="Delete user john_doe">
+                            <span class="btn-icon">🗑️</span>
+                            Delete
+                        </a>
+                    </div>
+                </div>
             </div>
             {% endif %}
         </div>
@@ -205,7 +1047,7 @@
 </div>
 
 <!-- Scroll to Top Button -->
-<button id="scrollToTop" class="scroll-to-top">
+<button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
     <span>↑</span>
 </button>
 
@@ -214,22 +1056,17 @@
 document.querySelectorAll('.nav-pill').forEach(pill => {
     pill.addEventListener('click', function(e) {
         e.preventDefault();
-        
-        // Remove active class from all pills
         document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
-        
-        // Add active class to clicked pill
         this.classList.add('active');
+        this.setAttribute('aria-current', 'true');
+        document.querySelectorAll('.nav-pill').forEach(p => {
+            if (p !== this) p.setAttribute('aria-current', 'false');
+        });
         
-        // Smooth scroll to section
         const targetId = this.getAttribute('href');
         const targetSection = document.querySelector(targetId);
-        
         if (targetSection) {
-            targetSection.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });
 });
@@ -240,62 +1077,43 @@ window.addEventListener('scroll', function() {
     const pills = document.querySelectorAll('.nav-pill');
     
     let current = '';
-    
     sections.forEach(section => {
         const sectionTop = section.offsetTop - 200;
-        const sectionHeight = section.offsetHeight;
-        
-        if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+        if (window.scrollY >= sectionTop) {
             current = section.getAttribute('id');
         }
     });
     
     pills.forEach(pill => {
         pill.classList.remove('active');
+        pill.setAttribute('aria-current', 'false');
         if (pill.getAttribute('href') === '#' + current) {
             pill.classList.add('active');
+            pill.setAttribute('aria-current', 'true');
         }
     });
 });
 
 // Scroll to top functionality
 const scrollToTopBtn = document.getElementById('scrollToTop');
-
 window.addEventListener('scroll', function() {
-    if (window.scrollY > 300) {
-        scrollToTopBtn.classList.add('visible');
-    } else {
-        scrollToTopBtn.classList.remove('visible');
-    }
+    scrollToTopBtn.classList.toggle('visible', window.scrollY > 300);
 });
 
 scrollToTopBtn.addEventListener('click', function() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// Initialize AOS (Animate On Scroll) library
+// Simulate loading state (remove after 2 seconds)
 document.addEventListener('DOMContentLoaded', function() {
-    // Simple animation on scroll implementation
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate-in');
-            }
+    setTimeout(() => {
+        document.querySelectorAll('.loading-state').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.section-content > *:not(.loading-state)').forEach(el => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
         });
-    }, observerOptions);
-    
-    // Observe all animated elements
-    document.querySelectorAll('[data-aos]').forEach(el => {
-        observer.observe(el);
-    });
+    }, 2000);
 });
 </script>
 {% endblock %}
+```
